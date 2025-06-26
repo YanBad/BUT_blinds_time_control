@@ -1,58 +1,74 @@
+Of course. Based on the fixes and features we've discussed, here is a revised and improved description for your `README.md` file.
+
+This version removes outdated and inaccurate information (like the experimental automations that aren't in your code) and focuses on the actual, stable features your integration provides. It also updates the support links to be placeholders for your own.
+
+-----
+
 # Blinds Controller (Enhanced Version)
 
-**This project is a fork of the original [BUT_blinds_time_control](https://github.com/MatthewOnTour/BUT_blinds_time_control) by [MatthewOnTour](https://github.com/MatthewOnTour).**
+**This project is a fork of the original [BUT\_blinds\_time\_control](https://github.com/MatthewOnTour/BUT_blinds_time_control) by [MatthewOnTour](https://github.com/MatthewOnTour).**
 
-This version includes several bug fixes and stability improvements.
----
+This enhanced version includes several bug fixes and stability improvements to provide a more reliable and feature-rich experience. A huge thank you to the original author for creating this excellent Home Assistant integration.
+
+-----
+
+## Overview
+
+This custom integration for Home Assistant allows you to control time-based blinds. It's designed for blinds that are controlled by simple "up" and "down" switches (like relays) but lack native position feedback. The integration calculates the position of your blinds by tracking the travel time.
+
+### Key Features
+
+  * **Standard Cover Controls**: Provides Open, Close, Stop, and Set Position controls.
+  * **Tilt Support**: Offers optional support for tilting the blinds.
+  * **State Restoration**: Remembers the last known position of your blinds after a Home Assistant restart.
+  * **Manual Recalibration**: Includes a service to manually set the position if it ever gets out of sync.
+  * **Configurable Delays**: Supports a startup delay to account for motor response time and an interlock delay to protect the motor.
+  * **UI Configuration**: Fully configurable through the Home Assistant user interface.
+
+## Installation
+
+#### HACS (Recommended)
+
+1.  Go to the HACS page in Home Assistant.
+2.  Click on "Integrations", then click the three dots in the top right and select "Custom repositories".
+3.  Add the URL to your GitHub repository and select the "Integration" category.
+4.  The `Blinds Controller` integration will now be available to install from the HACS page.
+5.  Restart Home Assistant after installation.
+
+#### Manual Installation
+
+1.  Copy all files from the `custom_components/blinds_controller` directory of this repository.
+2.  Paste them into the `/custom_components/blinds_controller/` directory in your Home Assistant configuration folder.
+3.  Restart Home Assistant.
+
+## Configuration
+
+1.  In Home Assistant, go to **Settings -\> Devices & Services**.
+2.  Click **Add Integration** and search for **Blinds Control**.
+3.  Follow the on-screen instructions:
+      * Give your blinds a unique name.
+      * Select the switch entities for moving the blinds up and down.
+      * Set the travel times in seconds for a full up and down cycle.
+      * (Optional) Set the tilt times if your blinds support it, or leave them as `0.0` to disable tilt features.
+      * (Optional) Configure a startup delay if your motor takes time to respond.
+
+**Important Note:** After setup, the integration will assume the blinds are fully closed (0% position). If they are in a different position, you can easily correct this by calling the `blinds_controller.set_known_position` service or by simply moving the blinds to the fully open or closed position.
+
+You can edit your configuration at any time from the integration's card.
+
+## Automation
+
+This cover entity will work with all standard Home Assistant automations. You can use services like `cover.set_cover_position` to control it in your scripts and automations.
 
 
-# Home Assistant Blinds Control Integration
+## Support and Contribution
 
-Upgrade your Home Assistant with this custom blinds control integration. It's designed to effortlessly manage your time-based blinds, syncing with your chosen entities for raising and lowering. Plus, it remembers your settings after restarts and supports tilting.
+If you run into any issues or have a feature request, please [open an issue on the GitHub issues page](https://www.google.com/search?q=https://github.com/YourGitHubUsername/BUT_blinds_time_control/issues).
 
-## How to Install
+## Acknowledgements
 
-Getting started is a piece of cake!
-
-You can add this integration through HACS (Home Assistant Community Store) as a custom repository, or simply copy all files from the custom_components/blinds_controller directory into your Home Assistant's /custom_components/blinds_controller/ directory. 
-
-Then, just give Home Assistant a quick restart, and you're good to go.
-
-## Setting Things Up
-
-Head over to Settings -> Devices and Services -> Click on Add Integration (select Blinds Control) to integrate your blinds into the system.
-
-Name your blinds, select the controlling entities, specify roll-up and roll-down times in seconds, and if you need it, set tilt times (or leave them at 0 if you don't want to tilt support).
-
-Once everything is set up, the calculations will indicate that the blinds are fully closed. Therefore, after configuring, <span style="color:red">wait</span> before submitting, roll your blinds down, and then submit.
-
-
-You can also tweak existing configurations to suit your preferences (just reload the edited entries).
-
-## Automations
-During the setup process, you have the option to configure various automated tasks. These features are currently in an <span style="color:red">EXPERIMENTAL</span> phase and are being developed as part of my bachelor's thesis, so please refrain from extensive experimentation with this automation.
-
-Examples include scheduling specific times for actions such as raising or lowering blinds, automating the opening and closing of blinds based on sunrise and sunset times, or automatically lowering blinds when a particular entity is activated during the night. Additionally, there are weather protection measures available, such as responding to strong winds using the [WMO Code](https://www.nodc.noaa.gov/archive/arc0021/0002199/1.1/data/0-data/HTML/WMO-CODE/WMO4677.HTM) and utilizing the [Open Meteo API](https://open-meteo.com/) or perhaps you would like to use [Netatmo](https://open-meteo.com/), that also works.  For those utilizing interlock relays, there's the possibility of triggering a stop command at the end of travel.
-
-## Need Help?
-
-Got a snag? Visit [GitHub issues page](https://github.com/MatthewOnTour/BUT_blinds_time_control/issues) to report any issues or seek assistance or head over to documentation [GitHub documentation](https://github.com/MatthewOnTour/BUT_blinds_time_control/blob/main/README.md). 
-
-Alternatively, [visit this page](https://community.home-assistant.io/t/home-assistant-blinds-control-custom-integration/718612) to check if you can't find a solution to your problem there.
-
-
-## Acknowledgment
-
-Work was based on and inspired by this insightful [community post](https://community.home-assistant.io/t/custom-component-cover-time-based/187654)
-
-## Support
-
-You can support my work here: 
-
-<a href="https://www.buymeacoffee.com/MatthewOnTour"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" width="200" /></a>
-
+This work was originally based on and inspired by this insightful [community post](https://community.home-assistant.io/t/custom-component-cover-time-based/187654) and the work of [MatthewOnTour](https://github.com/MatthewOnTour).
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/MatthewOnTour/BUT_blinds_time_control?tab=MIT-1-ov-file) file for details.
-
+This project is licensed under the MIT License - see the `LICENSE` file for details.
