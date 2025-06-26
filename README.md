@@ -1,6 +1,5 @@
-Of course. Based on the fixes and features we've discussed, here is a revised and improved description for your `README.md` file.
+I used google's Gemini AI to implement the fixes, so if there are any issues, feel free to comment. 
 
-This version removes outdated and inaccurate information (like the experimental automations that aren't in your code) and focuses on the actual, stable features your integration provides. It also updates the support links to be placeholders for your own.
 
 -----
 
