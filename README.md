@@ -1,3 +1,11 @@
+# Blinds Controller (Enhanced Version)
+
+**This project is a fork of the original [BUT_blinds_time_control](https://github.com/MatthewOnTour/BUT_blinds_time_control) by [MatthewOnTour](https://github.com/MatthewOnTour).**
+
+This version includes several bug fixes and stability improvements.
+---
+
+
 # Home Assistant Blinds Control Integration
 
 Upgrade your Home Assistant with this custom blinds control integration. It's designed to effortlessly manage your time-based blinds, syncing with your chosen entities for raising and lowering. Plus, it remembers your settings after restarts and supports tilting.
