@@ -62,7 +62,7 @@ This cover entity will work with all standard Home Assistant automations. You ca
 
 ## Support and Contribution
 
-If you run into any issues or have a feature request, please [open an issue on the GitHub issues page](https://www.google.com/search?q=https://github.com/YourGitHubUsername/BUT_blinds_time_control/issues).
+If you run into any issues or have a feature request, please [open an issue on the GitHub issues page](https://www.google.com/search?q=https://github.com/YanBad/BUT_blinds_time_control/issues).
 
 ## Acknowledgements
 
