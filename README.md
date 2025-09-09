@@ -1,6 +1,8 @@
 I used google's Gemini AI to implement the fixes, so if there are any issues, feel free to comment. 
 
+Update:
 
+The cover entity is now updated even if the switch entities are toggled separately (i.e. physically).
 -----
 
 # Blinds Controller (Enhanced Version)
