@@ -14,11 +14,13 @@ from homeassistant.const import (
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
     SERVICE_STOP_COVER,
+    STATE_ON, # Import STATE_ON
+    STATE_OFF,
 )
-from homeassistant.core import callback, HomeAssistant
+from homeassistant.core import callback, HomeAssistant, Event
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.event import async_track_time_interval, async_track_state_change_event
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.device_registry import DeviceInfo
 import voluptuous as vol
@@ -58,7 +60,6 @@ class BlindsCover(CoverEntity, RestoreEntity):
         self.hass = hass
         self.entry = entry
 
-        # Listen for option updates
         entry.async_on_unload(entry.add_update_listener(self.async_options_updated))
 
         self._attr_name = self.entry.options.get("ent_name", self.entry.data.get("ent_name"))
@@ -76,6 +77,9 @@ class BlindsCover(CoverEntity, RestoreEntity):
         self._configure_entity()
         
         self._unsubscribe_auto_updater = None
+        # --- NEW: Add flag to prevent feedback loops and variable for listeners ---
+        self._is_handling_command = False
+        self._remove_listeners = None
 
         self.travel_calc = TravelCalculator(
             self._travel_time_down, self._travel_time_up, self._startup_delay
@@ -100,8 +104,6 @@ class BlindsCover(CoverEntity, RestoreEntity):
     @staticmethod
     async def async_options_updated(hass: HomeAssistant, entry: ConfigEntry):
         """Handle options update."""
-        # This is a static method that triggers a reload of the integration.
-        # The __init__ will be called again with the updated entry.
         await hass.config_entries.async_reload(entry.entry_id)
         
     @property
@@ -268,17 +270,22 @@ class BlindsCover(CoverEntity, RestoreEntity):
             
     async def _async_handle_command(self, command: str) -> None:
         """Handle the cover commands."""
-        if command == SERVICE_OPEN_COVER:
-            await self.hass.services.async_call("switch", "turn_off", {"entity_id": self._down_switch_entity_id}, blocking=True)
-            await asyncio.sleep(0.1) # Interlock delay
-            await self.hass.services.async_call("switch", "turn_on", {"entity_id": self._up_switch_entity_id}, blocking=True)
-        elif command == SERVICE_CLOSE_COVER:
-            await self.hass.services.async_call("switch", "turn_off", {"entity_id": self._up_switch_entity_id}, blocking=True)
-            await asyncio.sleep(0.1) # Interlock delay
-            await self.hass.services.async_call("switch", "turn_on", {"entity_id": self._down_switch_entity_id}, blocking=True)
-        elif command == SERVICE_STOP_COVER:
-            await self.hass.services.async_call("switch", "turn_off", {"entity_id": self._up_switch_entity_id}, blocking=True)
-            await self.hass.services.async_call("switch", "turn_off", {"entity_id": self._down_switch_entity_id}, blocking=True)
+        # --- MODIFIED: Use the feedback loop flag ---
+        self._is_handling_command = True
+        try:
+            if command == SERVICE_OPEN_COVER:
+                await self.hass.services.async_call("switch", "turn_off", {"entity_id": self._down_switch_entity_id}, blocking=True)
+                await asyncio.sleep(0.1) # Interlock delay
+                await self.hass.services.async_call("switch", "turn_on", {"entity_id": self._up_switch_entity_id}, blocking=True)
+            elif command == SERVICE_CLOSE_COVER:
+                await self.hass.services.async_call("switch", "turn_off", {"entity_id": self._up_switch_entity_id}, blocking=True)
+                await asyncio.sleep(0.1) # Interlock delay
+                await self.hass.services.async_call("switch", "turn_on", {"entity_id": self._down_switch_entity_id}, blocking=True)
+            elif command == SERVICE_STOP_COVER:
+                await self.hass.services.async_call("switch", "turn_off", {"entity_id": self._up_switch_entity_id}, blocking=True)
+                await self.hass.services.async_call("switch", "turn_off", {"entity_id": self._down_switch_entity_id}, blocking=True)
+        finally:
+            self._is_handling_command = False
             
         self.async_write_ha_state()
 
@@ -290,6 +297,57 @@ class BlindsCover(CoverEntity, RestoreEntity):
             self.travel_calc.set_position(int(old_state.attributes.get(ATTR_CURRENT_POSITION)))
             if self.has_tilt_support() and old_state.attributes.get(ATTR_CURRENT_TILT_POSITION) is not None:
                 self.tilt_calc.set_position(int(old_state.attributes.get(ATTR_CURRENT_TILT_POSITION)))
+
+        # --- NEW: Set up the state listeners ---
+        self._remove_listeners = async_track_state_change_event(
+            self.hass,
+            [self._up_switch_entity_id, self._down_switch_entity_id],
+            self._async_switch_state_changed,
+        )
+
+    # --- NEW: Add cleanup for when the entity is removed ---
+    async def async_will_remove_from_hass(self) -> None:
+        """Run when entity will be removed from hass."""
+        if self._remove_listeners:
+            self._remove_listeners()
+
+    # --- NEW: The handler for switch state changes ---
+# In your BlindsCover class in cover.py
+
+# (All other code remains the same)
+
+    # --- MODIFIED: The handler for switch state changes ---
+    @callback
+    async def _async_switch_state_changed(self, event: Event) -> None:
+        """Handle the switch state changes."""
+        # Import STATE_OFF at the top of the file if not already present
+        from homeassistant.const import STATE_OFF
+
+        # Ignore changes that this entity triggered itself
+        if self._is_handling_command:
+            return
+
+        entity_id = event.data.get("entity_id")
+        new_state = event.data.get("new_state")
+
+        if not new_state:
+            return
+
+        # If a switch was turned ON, trigger the corresponding cover action
+        if new_state.state == STATE_ON:
+            if entity_id == self._up_switch_entity_id:
+                _LOGGER.debug("Cover %s is opening due to external switch command.", self.name)
+                await self.async_open_cover()
+            elif entity_id == self._down_switch_entity_id:
+                _LOGGER.debug("Cover %s is closing due to external switch command.", self.name)
+                await self.async_close_cover()
+        
+        # --- NEW: If a switch was turned OFF while the cover was moving, stop it ---
+        elif new_state.state == STATE_OFF:
+            # Check if the cover was actually moving
+            if self.is_opening or self.is_closing:
+                _LOGGER.debug("Cover %s is stopping due to external switch command.", self.name)
+                await self.async_stop_cover()
 
     async def async_set_known_position(self, position: int):
         """Service to set the known position of the cover."""
