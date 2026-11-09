@@ -18,6 +18,7 @@
           "interlock_delay": "Interlock delay between directions (seconds)",
           "tilt_open": "Tilt time to OPEN (seconds, 0 to disable)",
           "tilt_closed": "Tilt time to CLOSE (seconds, 0 to disable)",
+          "monitor_switches": "Monitor switch entities for external state changes",
           "send_stop_at_end": "Send STOP command when target position reached"
         },
         "data_description": {
@@ -25,7 +26,8 @@
           "stop_delay": "Time the motor coasts after the relay turns off before coming to a stop (default 0.15s). Subtracted from relay run time.",
           "sperrzeit": "Lockout threshold (default 0.2s). Commands <= this threshold are blocked by HA to prevent triggering unwanted full-travel pulses. Physical button presses <= this trigger full travel.",
           "overtravel_time": "Extra run time on 0% and 100% to ensure physical limit switches are reached and eliminate drift.",
-          "interlock_delay": "Safety pause between switching from up to down (or down to up) to protect relays and motor."
+          "interlock_delay": "Safety pause between switching from up to down (or down to up) to protect relays and motor.",
+          "monitor_switches": "Leave DISABLED if your switch entities are pure relay outputs (e.g. ESP32). Only enable if you have physical input sensors attached."
         }
       }
     },
@@ -51,6 +53,7 @@
           "interlock_delay": "Interlock delay between directions (seconds)",
           "tilt_open": "Tilt time to OPEN (seconds, 0 to disable)",
           "tilt_closed": "Tilt time to CLOSE (seconds, 0 to disable)",
+          "monitor_switches": "Monitor switch entities for external state changes",
           "send_stop_at_end": "Send STOP command when target position reached"
         },
         "data_description": {
@@ -58,7 +61,8 @@
           "stop_delay": "Time the motor coasts after the relay turns off before coming to a stop (default 0.15s). Subtracted from relay run time.",
           "sperrzeit": "Lockout threshold (default 0.2s). Commands <= this threshold are blocked by HA to prevent triggering unwanted full-travel pulses. Physical button presses <= this trigger full travel.",
           "overtravel_time": "Extra run time on 0% and 100% to ensure physical limit switches are reached and eliminate drift.",
-          "interlock_delay": "Safety pause between switching from up to down (or down to up) to protect relays and motor."
+          "interlock_delay": "Safety pause between switching from up to down (or down to up) to protect relays and motor.",
+          "monitor_switches": "Leave DISABLED if your switch entities are pure relay outputs (e.g. ESP32). Only enable if you have physical input sensors attached."
         }
       }
     }

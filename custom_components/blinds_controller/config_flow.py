@@ -71,6 +71,7 @@ class BlindsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Optional("tilt_closed", default=0.0): vol.All(
                         vol.Coerce(float), vol.Range(min=0.0)
                     ),
+                    vol.Optional("monitor_switches", default=False): bool,
                     vol.Optional("send_stop_at_end", default=True): bool,
                 }
             ),
@@ -81,9 +82,17 @@ class BlindsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class BlindsOptionsFlow(config_entries.OptionsFlow):
     """Handle an options flow for Blinds Controller."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry):
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
+        super().__init__()
+        self._config_entry = config_entry
+
+    @property
+    def config_entry(self) -> config_entries.ConfigEntry:
+        """Return the config entry."""
+        if hasattr(self, "_config_entry") and self._config_entry is not None:
+            return self._config_entry
+        return super().config_entry
 
     @callback
     def _get_entity_ids(self, platform="switch"):
@@ -100,52 +109,70 @@ class BlindsOptionsFlow(config_entries.OptionsFlow):
         options = self.config_entry.options
 
         def get_val(key, default):
-            return options.get(key, data.get(key, default))
+            if key in options and options[key] is not None:
+                return options[key]
+            if key in data and data[key] is not None:
+                return data[key]
+            return default
 
-        up_default = get_val("entity_up", "")
-        down_default = get_val("entity_down", "")
+        def get_float(key, default):
+            val = get_val(key, default)
+            try:
+                return float(val)
+            except (ValueError, TypeError):
+                return float(default)
 
-        up_validator = vol.In(all_switches) if (all_switches and up_default in all_switches) else str
-        down_validator = vol.In(all_switches) if (all_switches and down_default in all_switches) else str
+        up_default = str(get_val("entity_up", "") or "")
+        down_default = str(get_val("entity_down", "") or "")
 
-        dead_time_val = float(get_val("dead_time", get_val("startup_delay", 0.78)))
-        stop_delay_val = float(get_val("stop_delay", 0.15))
-        sperrzeit_val = float(get_val("sperrzeit", get_val("pulse_duration", 0.2)))
+        up_choices = list(all_switches)
+        if up_default and up_default not in up_choices:
+            up_choices.append(up_default)
+        up_choices.sort()
+
+        down_choices = list(all_switches)
+        if down_default and down_default not in down_choices:
+            down_choices.append(down_default)
+        down_choices.sort()
+
+        up_validator = vol.In(up_choices) if up_choices else str
+        down_validator = vol.In(down_choices) if down_choices else str
 
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
-                    vol.Required("ent_name", default=get_val("ent_name", "Blinds")): str,
+                    vol.Required("ent_name", default=str(get_val("ent_name", "Blinds"))): str,
                     vol.Required("entity_up", default=up_default): up_validator,
                     vol.Required("entity_down", default=down_default): down_validator,
-                    vol.Required("time_up", default=float(get_val("time_up", 30.0))): vol.All(
+                    vol.Required("time_up", default=get_float("time_up", 30.0)): vol.All(
                         vol.Coerce(float), vol.Range(min=0.1)
                     ),
-                    vol.Required("time_down", default=float(get_val("time_down", 30.0))): vol.All(
+                    vol.Required("time_down", default=get_float("time_down", 30.0)): vol.All(
                         vol.Coerce(float), vol.Range(min=0.1)
                     ),
-                    vol.Optional("dead_time", default=dead_time_val): vol.All(
+                    vol.Optional("dead_time", default=get_float("dead_time", get_float("startup_delay", 0.78))): vol.All(
                         vol.Coerce(float), vol.Range(min=0.0, max=5.0)
                     ),
-                    vol.Optional("stop_delay", default=stop_delay_val): vol.All(
+                    vol.Optional("stop_delay", default=get_float("stop_delay", 0.15)): vol.All(
                         vol.Coerce(float), vol.Range(min=0.0, max=1.0)
                     ),
-                    vol.Optional("sperrzeit", default=sperrzeit_val): vol.All(
+                    vol.Optional("sperrzeit", default=get_float("sperrzeit", get_float("pulse_duration", 0.2))): vol.All(
                         vol.Coerce(float), vol.Range(min=0.01, max=3.0)
                     ),
-                    vol.Optional("overtravel_time", default=float(get_val("overtravel_time", 1.0))): vol.All(
+                    vol.Optional("overtravel_time", default=get_float("overtravel_time", 1.0)): vol.All(
                         vol.Coerce(float), vol.Range(min=0.0, max=5.0)
                     ),
-                    vol.Optional("interlock_delay", default=float(get_val("interlock_delay", 0.2))): vol.All(
+                    vol.Optional("interlock_delay", default=get_float("interlock_delay", 0.2)): vol.All(
                         vol.Coerce(float), vol.Range(min=0.0, max=2.0)
                     ),
-                    vol.Optional("tilt_open", default=float(get_val("tilt_open", 0.0))): vol.All(
+                    vol.Optional("tilt_open", default=get_float("tilt_open", 0.0)): vol.All(
                         vol.Coerce(float), vol.Range(min=0.0)
                     ),
-                    vol.Optional("tilt_closed", default=float(get_val("tilt_closed", 0.0))): vol.All(
+                    vol.Optional("tilt_closed", default=get_float("tilt_closed", 0.0)): vol.All(
                         vol.Coerce(float), vol.Range(min=0.0)
                     ),
+                    vol.Optional("monitor_switches", default=bool(get_val("monitor_switches", False))): bool,
                     vol.Optional("send_stop_at_end", default=bool(get_val("send_stop_at_end", True))): bool,
                 }
             ),

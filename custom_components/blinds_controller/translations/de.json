@@ -18,6 +18,7 @@
           "interlock_delay": "Verriegelungsverzögerung zwischen Richtungswechseln in Sekunden",
           "tilt_open": "Lamellen-Wendezeit AUF in Sekunden (0 zum Deaktivieren)",
           "tilt_closed": "Lamellen-Wendezeit ZU in Sekunden (0 zum Deaktivieren)",
+          "monitor_switches": "Schalter-Zustandsänderungen extern überwachen",
           "send_stop_at_end": "STOPP-Befehl nach Erreichen der Zielposition senden"
         },
         "data_description": {
@@ -25,7 +26,8 @@
           "stop_delay": "Zeit, die der Motor nach dem Abschalten des Relais bis zum Stillstand nachläuft (Standard 0.15s). Wird von der Relais-Einschaltdauer subtrahiert.",
           "sperrzeit": "Sperrzeit-Schwellenwert (Standard 0.2s). Kürzere Fahrbefehle werden von Home Assistant blockiert, um versehentliche Komplettfahrten zu verhindern. Physische Tastendrücke unter diesem Wert lösen eine Komplettfahrt aus.",
           "overtravel_time": "Zusätzliche Motorlaufzeit beim vollständigen Öffnen (100%) oder Schließen (0%), damit der mechanische Endschalter sicher erreicht und die Position rekalibriert wird.",
-          "interlock_delay": "Sicherheitspause beim Richtungswechsel, um gleichzeitiges Bestromen beider Motorwicklungen und Relaisabbrand zu verhindern."
+          "interlock_delay": "Sicherheitspause beim Richtungswechsel, um gleichzeitiges Bestromen beider Motorwicklungen und Relaisabbrand zu verhindern.",
+          "monitor_switches": "DEAKTIVIERT lassen, wenn Ihre Schalter reine Relaisausgänge sind (z. B. ESP32). Nur aktivieren, wenn Sie physische Eingangssensoren verwenden."
         }
       }
     },
@@ -51,6 +53,7 @@
           "interlock_delay": "Verriegelungsverzögerung zwischen Richtungswechseln in Sekunden",
           "tilt_open": "Lamellen-Wendezeit AUF in Sekunden (0 zum Deaktivieren)",
           "tilt_closed": "Lamellen-Wendezeit ZU in Sekunden (0 zum Deaktivieren)",
+          "monitor_switches": "Schalter-Zustandsänderungen extern überwachen",
           "send_stop_at_end": "STOPP-Befehl nach Erreichen der Zielposition senden"
         },
         "data_description": {
@@ -58,7 +61,8 @@
           "stop_delay": "Zeit, die der Motor nach dem Abschalten des Relais bis zum Stillstand nachläuft (Standard 0.15s). Wird von der Relais-Einschaltdauer subtrahiert.",
           "sperrzeit": "Sperrzeit-Schwellenwert (Standard 0.2s). Kürzere Fahrbefehle werden von Home Assistant blockiert, um versehentliche Komplettfahrten zu verhindern. Physische Tastendrücke unter diesem Wert lösen eine Komplettfahrt aus.",
           "overtravel_time": "Zusätzliche Motorlaufzeit beim vollständigen Öffnen (100%) oder Schließen (0%), damit der mechanische Endschalter sicher erreicht und die Position rekalibriert wird.",
-          "interlock_delay": "Sicherheitspause beim Richtungswechsel, um gleichzeitiges Bestromen beider Motorwicklungen und Relaisabbrand zu verhindern."
+          "interlock_delay": "Sicherheitspause beim Richtungswechsel, um gleichzeitiges Bestromen beider Motorwicklungen und Relaisabbrand zu verhindern.",
+          "monitor_switches": "DEAKTIVIERT lassen, wenn Ihre Schalter reine Relaisausgänge sind (z. B. ESP32). Nur aktivieren, wenn Sie physische Eingangssensoren verwenden."
         }
       }
     }

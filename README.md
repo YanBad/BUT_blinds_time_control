@@ -16,14 +16,14 @@ Fork of the original [BUT_blinds_time_control](https://github.com/MatthewOnTour/
 * **Dead Time (Totzeit) & Stop Delay (Nachlaufzeit) Compensation**:
   * **Dead Time (`dead_time`, default 0.78s)**: Motor controllers often have an internal response delay between relay click and the motor actually starting to move.
   * **Stop Delay (`stop_delay`, default 0.15s)**: When the relay turns off, the motor coasts for ~0.1s – 0.3s before coming to a complete standstill.
-  * **Timing Calculation**:
-    `Relay-ON Time = T_desired_move + dead_time - stop_delay`
-    *(e.g., to move for $1.0\text{s}$, the relay is energized for $1.0 + 0.78 - 0.15 = 1.63\text{s}$)*
-  * For manual wall button holds, the net delay (`dead_time - stop_delay`) is subtracted so that position tracking accurately reflects only the exact time the motor was moving.
+  * **Exact Timing Formula**:
+    $$\text{Relay-ON Time} = T_{\text{desired\_move}} + \text{dead\_time} - \text{stop\_delay}$$
+    *(e.g., to move for $1.0\text{s}$, the relay is energized for $1.0 + 0.78 - 0.15 = 1.63\text{s}$!)*
+  * For manual wall button holds, the net delay ($\text{dead\_time} - \text{stop\_delay}$) is subtracted so that position tracking accurately reflects only the exact time the motor was moving.
 * **Lockout Time / Sperrzeit Protection (Default: 0.2s)**:
   * Hardware motors often treat tiny pulses (e.g. ~0.1s) as a signal to run continuously to the end position.
   * Home Assistant will **never** send a command shorter than `sperrzeit`, preventing accidental full-travel pulses when micro-adjustments are commanded.
-  * Physical button presses $\le$ `sperrzeit` (e.g. 0.1s) are correctly recognized as intentional full-travel pulses and tracked all the way to 0% or 100%.
+  * Physical button presses $\le \text{sperrzeit}$ (e.g. 0.1s) are correctly recognized as intentional full-travel pulses and tracked all the way to 0% or 100%.
   * Tapping any button while moving immediately stops the motion.
 * **Echo / Feedback Loop Prevention**: State changes triggered by Home Assistant service commands are tracked and suppressed so they do not falsely trigger external switch handlers.
 * **End-Stop Over-Travel & Drift Elimination**: Optional extra run time (`overtravel_time`, default 1.0s) when reaching 0% or 100% to guarantee the motor reaches its internal limit switch, firmly confirming the position and preventing cumulative timing errors.
@@ -82,10 +82,26 @@ All options can be adjusted anytime by clicking **Configure** on the integration
 
 ### `blinds_controller.set_known_position`
 Manually set the current position of the blinds without moving the motor. Useful if the blinds were moved manually or during maintenance.
-
 ```yaml
 service: blinds_controller.set_known_position
 target:
   entity_id: cover.living_room_blinds
 data:
   position: 100
+```
+
+### `blinds_controller.set_known_tilt_position`
+Manually set the current tilt position of the slats without moving the motor.
+```yaml
+service: blinds_controller.set_known_tilt_position
+target:
+  entity_id: cover.living_room_blinds
+data:
+  position: 50
+```
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the `LICENSE.md` file for details.
