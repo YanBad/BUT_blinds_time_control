@@ -88,20 +88,3 @@ target:
   entity_id: cover.living_room_blinds
 data:
   position: 100
-```
-
-### `blinds_controller.set_known_tilt_position`
-Manually set the current tilt position of the slats without moving the motor.
-```yaml
-service: blinds_controller.set_known_tilt_position
-target:
-  entity_id: cover.living_room_blinds
-data:
-  position: 50
-```
-
----
-
-## License
-
-This project is licensed under the MIT License - see the `LICENSE.md` file for details.
