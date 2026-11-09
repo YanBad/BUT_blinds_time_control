@@ -194,6 +194,36 @@ class TestSwitchLogic(unittest.TestCase):
         self.assertEqual(res, "tapped_to_stop")
         self.assertFalse(self.ctrl.travel_calc.is_traveling())
 
+    def test_direction_reversal_while_moving(self):
+        # Start moving down to 0%
+        self.ctrl.ha_set_position(0)
+        self.assertEqual(self.ctrl.switch_states[self.ctrl.down_switch], "on")
+        self.assertEqual(self.ctrl.switch_states[self.ctrl.up_switch], "off")
+
+        # Advance 10s
+        self.ctrl.set_time(1010.0)
+
+        # Now command reverse to 100%
+        self.ctrl.ha_set_position(100)
+        # DOWN switch must be off, UP switch must be on
+        self.assertEqual(self.ctrl.switch_states[self.ctrl.down_switch], "off")
+        self.assertEqual(self.ctrl.switch_states[self.ctrl.up_switch], "on")
+        self.assertEqual(self.ctrl.travel_calc.travel_direction, TravelStatus.DIRECTION_UP)
+
+    def test_sperrzeit_blocks_micro_movement(self):
+        # Position is 100%. User requests 99.9% -> travel time 0.1s.
+        # Total relay time = 0.1s + dead_time (0.78s) = 0.88s > sperrzeit (0.2s).
+        # But if sperrzeit is configured to 1.0s:
+        self.ctrl.sperrzeit = 1.0
+        res = self.ctrl.ha_set_position(99)
+        # 1% move on 100s blind is 1.0s. + 0.78s = 1.78s > 1.0s.
+        self.assertEqual(res, "started")
+
+        # If user requests same position (99% when already at 99%):
+        self.ctrl.travel_calc.set_position(99)
+        res = self.ctrl.ha_set_position(99)
+        self.assertEqual(res, "same_position")
+
 
 if __name__ == "__main__":
     unittest.main()

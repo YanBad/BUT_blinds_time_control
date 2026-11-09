@@ -111,6 +111,44 @@ class TestTravelCalculator(unittest.TestCase):
         self.assertEqual(calc.current_position(), 100)
         self.assertTrue(calc.position_reached())
 
+    def test_clamp_robustness(self):
+        calc = TravelCalculator(travel_time_down=30.0, travel_time_up=30.0)
+        self.assertEqual(calc.clamp(None), 0)
+        self.assertEqual(calc.clamp(-50), 0)
+        self.assertEqual(calc.clamp(150), 100)
+        self.assertEqual(calc.clamp(50.4), 50)
+        self.assertEqual(calc.clamp(50.6), 51)
+        self.assertEqual(calc.clamp("invalid"), 0)
+
+    def test_remaining_travel_time_with_startup_delay(self):
+        calc = TravelCalculator(travel_time_down=30.0, travel_time_up=30.0, startup_delay=1.0)
+        calc.time_set_from_outside = 1000.0
+        calc.set_position(0)
+        calc.start_travel_up()
+
+        # At t=0s: remaining is startup_delay (1.0s) + full travel (30.0s) = 31.0s
+        self.assertAlmostEqual(calc.remaining_travel_time(), 31.0, places=2)
+
+        # At t=0.5s: remaining is remaining startup (0.5s) + full travel (30.0s) = 30.5s
+        calc.time_set_from_outside = 1000.5
+        self.assertAlmostEqual(calc.remaining_travel_time(), 30.5, places=2)
+
+        # At t=1.0s: startup delay finished, remaining is 30.0s
+        calc.time_set_from_outside = 1001.0
+        self.assertAlmostEqual(calc.remaining_travel_time(), 30.0, places=2)
+
+        # At t=16.0s (15s effective travel): remaining is 15.0s
+        calc.time_set_from_outside = 1016.0
+        self.assertAlmostEqual(calc.remaining_travel_time(), 15.0, places=2)
+
+        # At t=31.0s (30s effective travel): remaining is 0.0s
+        calc.time_set_from_outside = 1031.0
+        self.assertAlmostEqual(calc.remaining_travel_time(), 0.0, places=2)
+
+        # At t=35.0s (past target): remaining is clamped to 0.0s
+        calc.time_set_from_outside = 1035.0
+        self.assertAlmostEqual(calc.remaining_travel_time(), 0.0, places=2)
+
 
 if __name__ == "__main__":
     unittest.main()

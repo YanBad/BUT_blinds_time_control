@@ -37,9 +37,15 @@ class TravelCalculator:
 
         self.time_set_from_outside = None
 
-    def clamp(self, position: int | float) -> int:
+    def clamp(self, position: int | float | None) -> int:
         """Clamp position to [position_closed, position_open]."""
-        return int(round(max(self.position_closed, min(self.position_open, position))))
+        if position is None:
+            return self.position_closed
+        try:
+            val = float(position)
+        except (ValueError, TypeError):
+            return self.position_closed
+        return int(round(max(self.position_closed, min(self.position_open, val))))
 
     def set_position(self, position: int):
         """Set known position of cover."""
@@ -128,7 +134,11 @@ class TravelCalculator:
             return 0.0
 
         elapsed_time = self.current_time() - self.travel_started_time
-        effective_elapsed_time = max(0.0, elapsed_time - self.startup_delay)
+        if elapsed_time < self.startup_delay:
+            remaining_delay = self.startup_delay - elapsed_time
+            return total_travel_time + remaining_delay
+
+        effective_elapsed_time = elapsed_time - self.startup_delay
         remaining = total_travel_time - effective_elapsed_time
         return max(0.0, remaining)
 
